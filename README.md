@@ -1,19 +1,54 @@
 # Agentic PM
 
-An open toolkit of **AI agents that do product management work** — the chores PMs hate, automated: release readiness, sprint reporting, meeting action items, PR triage, backlog grooming.
-
-The thesis (from [*Why the Agent PM Is Inevitable*](https://aireadypm.com)): the PM's job is coordination overhead, and coordination overhead is exactly what agents eat. This repo is the proof, one agent at a time.
-
-## Try it in 60 seconds (no tokens needed)
+**A command-line toolkit that runs AI agents to automate product management busywork** — release readiness checks, sprint reports, meeting action items.
 
 ```bash
-git clone https://github.com/malagasr/agentic-pm.git
-cd agentic-pm
 pip install -r requirements.txt
-PYTHONPATH=src python -m agentic_pm.cli demo
+PYTHONPATH=src python -m agentic_pm.cli demo     # try it now, no tokens needed
 ```
 
-`pm demo` runs two agents against bundled fixture data so you can see the output before wiring up anything real.
+## How it works
+
+```mermaid
+flowchart LR
+    A["`pm run ...`"] --> B["Agent"]
+    B --> C["GitHub<br/>PRs · issues · checks"]
+    C --> D["Brief<br/>markdown / Slack"]
+```
+
+## What you get
+
+**1. Release readiness in one command.** Point it at a repo, get a GO / CAUTION / NOT READY verdict with the receipts:
+
+```bash
+python -m agentic_pm.cli run release-train --repo owner/name
+```
+
+```
+# Release readiness — owner/name
+## Verdict: CAUTION — shippable with noted risks
+## Signals
+- Open PRs: **3** | Open bugs: **2** | Failing checks: **1**
+## Risk flags
+- 1 PR(s) open > 14 days (oldest: #42)
+- failing checks on default branch: test / unit (3.12)
+```
+
+**2. Sprint reports that write themselves.** Merged PRs + closed issues from the last 7 days become a standup-ready report — the chore every PM hates, gone:
+
+```bash
+python -m agentic_pm.cli run sprint-report --repo owner/name --set days=7
+```
+
+**3. Meeting notes → action items.** Paste a transcript, get owners, tasks, and due dates:
+
+```bash
+python -m agentic_pm.cli run meeting-actions --set transcript=notes.txt
+```
+
+## Who this is for
+
+Engineering managers and PMs who live in GitHub and are tired of status busywork. If you've ever spent Friday afternoon writing a sprint report from scattered PRs, this is your tool.
 
 ## Real usage
 
@@ -21,24 +56,21 @@ PYTHONPATH=src python -m agentic_pm.cli demo
 cp .env.example .env            # add GITHUB_TOKEN (ANTHROPIC_API_KEY optional)
 python -m agentic_pm.cli init   # scaffold agentic-pm.yaml + .env
 
-python -m agentic_pm.cli list
-python -m agentic_pm.cli run release-train --repo owner/name
-python -m agentic_pm.cli run sprint-report --repo owner/name --set days=14
-python -m agentic_pm.cli run meeting-actions --set transcript=notes.txt
-python -m agentic_pm.cli run release-train --repo owner/name --out brief.md
+python -m agentic_pm.cli list                              # all agents
+python -m agentic_pm.cli run release-train --repo o/r --out brief.md
 ```
 
-Without `ANTHROPIC_API_KEY`, agents render deterministic briefs and say so — the toolkit stays useful on a plane. With a key, you get LLM-polished executive summaries.
+Without `ANTHROPIC_API_KEY`, agents render deterministic briefs and say so — useful on a plane. With a key, you get LLM-polished executive summaries.
 
 ## The agents
 
-| Agent | Status | What it does |
+| Agent | Status | The chore it kills |
 |---|---|---|
-| `release-train` | working | Open PRs + bug queue + CI status → readiness brief (GO / CAUTION / NOT READY) |
-| `sprint-report` | working | Merged PRs + closed issues in a window → standup-ready sprint report |
-| `meeting-actions` | working | Transcript → action items with owners and due dates (needs API key) |
-| `pr-triage` | planned | Rank open PRs by risk, draft review comments |
-| `backlog-groomer` | planned | Dedupe, score, and re-rank backlog items |
+| `release-train` | working | Manually checking "are we ready to ship?" |
+| `sprint-report` | working | Writing Friday status reports from scattered PRs |
+| `meeting-actions` | working | Mining transcripts for who-owes-what |
+| `pr-triage` | planned | Figuring out which PRs need your eyes first |
+| `backlog-groomer` | planned | Dedupe, score, and re-rank the backlog |
 
 ## Build your own agent
 
@@ -63,6 +95,10 @@ Drop it in `src/agentic_pm/agents/`, import it in `agents/__init__.py`, done —
 - `render.py` — markdown + Slack Block Kit output
 - `connectors/` — data sources (GitHub today; Jira/Linear next)
 - `agents/` — one module per agent
+
+## Why this exists
+
+The PM's job is coordination overhead, and coordination overhead is exactly what agents eat. This repo is the proof, one agent at a time.
 
 ## Privacy note
 
