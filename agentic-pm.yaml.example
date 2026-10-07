@@ -1,0 +1,12 @@
+# Team config for agentic-pm. Created by `pm init`.
+
+# Repos the agents operate on (owner/name). The first is the default.
+repos:
+  - malagasr/agentic-pm
+
+# Release-train thresholds
+stale_pr_days: 14
+big_pr_lines: 1000
+
+# Name of the env var holding your GitHub token (see .env)
+github_token_env: GITHUB_TOKEN
